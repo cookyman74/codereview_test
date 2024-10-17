@@ -19,7 +19,7 @@ def review_code(file_path, content):
     """OpenAI API로 개별 파일에 대한 코드 리뷰 요청"""
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
+            model="gpt-4-0613",
             messages=[
                 {"role": "system", "content": "당신은 코드 리뷰어입니다."},
                 {"role": "user", "content": f"""
