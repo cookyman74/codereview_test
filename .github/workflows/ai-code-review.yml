@@ -1,7 +1,11 @@
 name: AI Code Review
 
+# 이벤트가 발생할 조건을 정의
 on:
   push:
+    branches-ignore:
+      - main  # 메인 브랜치를 제외한 모든 브랜치에서 트리거
+  pull_request:  # pull_request 이벤트가 발생할 때도 트리거
     branches-ignore:
       - main
 
@@ -10,31 +14,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+    - name: Checkout code  # 코드 체크아웃
+      uses: actions/checkout@v3  # 최신 버전으로 업데이트
 
-    - name: Install Python
-      uses: actions/setup-python@v3
+    - name: Install Python  # Python 설치
+      uses: actions/setup-python@v3  # 최신 버전으로 업데이트
       with:
         python-version: '3.x'
 
-    - name: Install dependencies
+    - name: Install dependencies  # 패키지 설치 단계 추가
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements.txt  # requirements.txt 파일에 명시된 패키지 설치
 
-    - name: Run AI Code Review
+    - name: Run AI Code Review  # AI 리뷰 생성 단계
       id: review_step  # step의 ID를 설정하여 이후에 결과를 참조 가능
       run: |
-        python .github/scripts/review_code.py > review_output.txt
-        review=$(cat review_output.txt)
-        echo "::set-output name=review::$review"
+        python .github/scripts/review_code.py > review_output.txt  # Python 스크립트 실행 후 출력 저장
+        review=$(cat review_output.txt)  # 출력된 리뷰 내용 저장
+        echo "::set-output name=review::$review"  # 출력된 결과를 출력 값으로 설정
 
     - name: Post review as a comment  # GitHub PR 코멘트 작성
       run: |
-        curl -X POST \
+        response=$(curl -X POST \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d "{\"body\": \"${{ steps.review_step.outputs.review }}\"}" \
-          https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments
+          https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments)
+        echo "Response: $response"  # 응답 결과 출력 (디버깅용)
 
