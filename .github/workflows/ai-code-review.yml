@@ -16,7 +16,7 @@ jobs:
       
       # 2. Set up Python
       - name: Set up Python
-        uses: actions/setup-python@v3
+        uses: actions/setup-python@v2
         with:
           python-version: '3.x'
 
@@ -42,7 +42,7 @@ jobs:
             
             # 리뷰 결과를 현재 커밋에 코멘트로 남김
             commit_sha=$(git rev-parse HEAD)
-            review=$(cat review_output.txt | jq -Rs '.')
+            review=$(cat review_output.txt | python -c "import sys, json; print(json.dumps(sys.stdin.read()))")
             response=$(curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Content-Type: application/json" \
