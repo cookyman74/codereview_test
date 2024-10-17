@@ -18,10 +18,25 @@ def review_code(diff):
     """OpenAI API로 코드 리뷰 요청"""
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": "You are a code reviewer."},
-                {"role": "user", "content": f"Review the following code changes:\n{diff}"}
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a code reviewer."},
+            {"role": "user", "content": f"""
+            Review the following code changes:\n{diff}
+
+            Please provide detailed feedback considering the following criteria:
+
+            1. Are there any potential bugs introduced by these changes?
+            2. Is there any duplicated code or areas where reusable modules could be implemented?
+            3. Does the code follow the existing code conventions? Point out any inconsistencies.
+            4. Provide refactoring suggestions to improve the code's quality, readability, and maintainability.
+            5. Are there any performance issues that could arise? Suggest any optimizations.
+            6. Are there any security vulnerabilities that might be introduced by these changes?
+            7. Is there sufficient test coverage for the changes? If not, suggest additional test cases.
+            8. Are the comments and documentation adequate? Is there anything unclear or that needs further explanation?
+
+            Please provide your review in Korean.
+            """}
             ]
         )
         return response.choices[0].message['content']
