@@ -49,12 +49,27 @@ def review_code(file_path, content):
     except Exception as e:
         return f"Error during review of {file_path}: {str(e)}"
 
-def main():
+def get_changed_files():
+    """GitPython을 사용하여 직전 커밋과 현재 커밋의 변경된 파일 목록을 가져오는 함수"""
     try:
         repo = Repo(".")
-        current_branch = repo.active_branch.name
-        changed_files = repo.git.diff("--name-only", "HEAD@{1}..HEAD").split("\n")
-        changed_files = [f for f in changed_files if f]  # 빈 문자열 제거
+        head_commit = repo.head.commit
+        previous_commit = head_commit.parents[0]  # 직전 커밋을 가져옴
+        diff_index = previous_commit.diff(head_commit)
+
+        changed_files = [item.a_path for item in diff_index]  # 변경된 파일 목록 반환
+        return changed_files
+    except Exception as e:
+        print(f"Error occurred while fetching changed files: {e}")
+        return []
+
+def main():
+    try:
+        changed_files = get_changed_files()
+
+        if not changed_files:
+            print("No code changes detected.")
+            return
 
         review_summary = "코드 리뷰가 완료되었습니다. 세부 사항은 아래를 참조하세요."
         review_details = []
