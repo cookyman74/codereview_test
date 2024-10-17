@@ -21,30 +21,29 @@ def review_code(file_path, content):
         response = openai.ChatCompletion.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "당신은 코드 리뷰어입니다."},
+                {"role": "system", "content": "You are a code reviewer."},
                 {"role": "user", "content": f"""
-                다음 파일의 코드를 리뷰해주세요:\n
-                파일: {file_path}\n
-                코드:\n{content}\n
-                다음 기준을 고려하여 상세한 피드백을 제공해주세요:
+                Please review the following file:\n
+                File: {file_path}\n
+                Code:\n{content}\n
+                Provide detailed feedback based on the following criteria:
 
-                1. 이 변경으로 인해 발생할 수 있는 잠재적인 버그가 있나요?
-                2. 중복된 코드나 재사용 가능한 모듈로 구현할 수 있는 영역이 있나요?
-                3. 코드가 기존의 코드 규칙을 따르고 있나요? 일관성이 없는 부분을 지적해주세요.
-                4. 코드의 품질, 가독성, 유지보수성을 향상시키기 위한 리팩토링 제안을 해주세요.
-                5. 발생할 수 있는 성능 문제가 있나요? 최적화 방안을 제안해주세요.
-                6. 이 변경으로 인해 도입될 수 있는 보안 취약점이 있나요?
-                7. 변경 사항에 대한 테스트 커버리지가 충분한가요? 부족하다면 추가적인 테스트 케이스를 제안해주세요.
-                8. 주석과 문서화가 적절한가요? 불명확하거나 추가 설명이 필요한 부분이 있나요?
+                1. Are there any potential bugs introduced by these changes?
+                2. Are there sections with duplicated code or opportunities for reusable modules?
+                3. Does the code follow established coding conventions? Point out any inconsistencies.
+                4. Provide refactoring suggestions to improve code quality, readability, and maintainability.
+                5. Are there any performance issues? Suggest possible optimizations.
+                6. Could any security vulnerabilities be introduced by these changes?
+                7. Is the test coverage sufficient for these changes? If not, suggest additional test cases.
+                8. Are the comments and documentation adequate? Point out anything unclear or needing further explanation.
 
-                리뷰를 다음 형식으로 제공해주세요:
-                - 한 문장으로 된 주요 개선사항 또는 문제점 요약
-                - 최대 3개의 구체적인 제안 사항 (있는 경우)
+                Provide your feedback only on the most relevant points. You may omit unnecessary criteria.
 
-                응답은 한국어로 해주세요.
+                The response should be in Korean.
                 """}
             ]
         )
+
         return response.choices[0].message['content'].strip()
     except Exception as e:
         return f"Error during review of {file_path}: {str(e)}"
