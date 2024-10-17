@@ -1,56 +1,52 @@
 name: AI Code Review
 
-on: 
+on:
   push:
-    branches:
-      - '**' # 모든 브랜치에서 실행
+    branches-ignore:
+      - main
 
 jobs:
-  review:
+  code_review:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
-      
-      # 2. Set up Python
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      # 3. Install dependencies
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+    - name: Install Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.x'
 
-      # 4. Run AI Code Review
-      - name: Run AI Code Review
-        run: |
-          # 현재 브랜치명 동적으로 가져오기
-          branch_name=$(git rev-parse --abbrev-ref HEAD)
-          
-          # 원격 브랜치(origin/브랜치명)와 로컬 HEAD 사이의 변경점 확인
-          git fetch origin  # 원격 저장소의 최신 정보 가져오기
-          git diff --name-only origin/$branch_name...HEAD > changed_files.txt  # 변경 파일 목록 추출
-          
-          # 변경된 파일이 있을 때만 Python 스크립트 실행
-          if [ -s changed_files.txt ]; then
-            python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
-            
-            # 리뷰 결과를 현재 커밋에 코멘트로 남김
-            commit_sha=$(git rev-parse HEAD)
-            review=$(cat review_output.txt | python -c "import sys, json; print(json.dumps(sys.stdin.read()))")
-            response=$(curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d "{\"body\": $review}" \
-              https://api.github.com/repos/${{ github.repository }}/commits/${commit_sha}/comments)
-            echo "Response: $response"
-          fi
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run AI Code Review
+      id: review_step
+      run: |
+        git fetch origin
+
+        if git merge-base --is-ancestor origin/main HEAD; then
+          git diff --name-only origin/main...HEAD > changed_files.txt
+        else
+          echo "No common ancestor, treating as first commit" > changed_files.txt
+          git ls-files >> changed_files.txt
+        fi
+
+        # Python 스크립트를 실행하여 리뷰를 생성한 후, 결과를 review_output.txt 파일에 저장
+        python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
+
+    - name: Post review as a commit comment
+      run: |
+        commit_sha=$(git rev-parse HEAD)
+        review=$(cat review_output.txt | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
+        response=$(curl -X POST \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d "{\"body\": \"$review\"}" \
+          https://api.github.com/repos/${{ github.repository }}/commits/${commit_sha}/comments)
+        echo "Response: $response"
 
 
