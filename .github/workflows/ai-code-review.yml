@@ -1,0 +1,28 @@
+name: AI Code Review
+
+# 이벤트가 발생할 조건을 정의
+on:
+  push:
+    branches-ignore:
+      - main  # 메인 브랜치를 제외한 모든 브랜치에서 트리거
+
+# 작업 정의
+jobs:
+  code_review:
+    runs-on: ubuntu-latest  # 작업이 실행될 환경
+
+    steps:
+    - name: Checkout code  # 코드 체크아웃
+      uses: actions/checkout@v2  # 리포지토리의 코드를 가져옴
+
+    - name: Install Python  # Python 설치
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'  # 원하는 Python 버전 설정
+
+    - name: Run code review with OpenAI  # 코드 리뷰 작업
+      run: |
+        echo "Starting code review..."
+	python .github/scripts/review_code.py
+        # 이후 Python 스크립트로 코드 리뷰를 실행할 수 있음
+
