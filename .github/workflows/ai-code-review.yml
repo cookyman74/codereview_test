@@ -1,11 +1,6 @@
 name: AI Code Review
 
 # pull_request 이벤트에서만 워크플로우를 실행
-on:
-  pull_request:
-    branches-ignore:
-      - main
-
 jobs:
   code_review:
     runs-on: ubuntu-latest
