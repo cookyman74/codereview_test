@@ -4,9 +4,6 @@ on:
   push:
     branches-ignore:
       - main
-  pull_request:
-    branches-ignore:
-      - main
 
 jobs:
   code_review:
@@ -40,16 +37,15 @@ jobs:
 
         # Python 스크립트를 실행하여 리뷰를 생성한 후, 결과를 review_output.txt 파일에 저장
         python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
-    
-    - name: Post review as a comment
+
+    - name: Post review as a commit comment
       run: |
-        # 리뷰 결과를 review_output.txt에서 읽어서 GitHub PR에 코멘트로 남김
+        commit_sha=$(git rev-parse HEAD)
         review=$(cat review_output.txt)
         response=$(curl -X POST \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d "{\"body\": \"$review\"}" \
-          https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments || \
-          echo "Review comment failed to post. Reason: No pull request found for this push event.")
+          https://api.github.com/repos/${{ github.repository }}/commits/${commit_sha}/comments)
         echo "Response: $response"
 
