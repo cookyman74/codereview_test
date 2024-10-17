@@ -29,9 +29,9 @@ jobs:
     - name: Run AI Code Review
       id: review_step
       run: |
-        python .github/scripts/review_code.py > review_output.txt
-        review=$(cat review_output.txt)
-        echo "review=$review" >> $GITHUB_ENV
+        python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
+        review=$(cat review_output.txt || echo "No output generated")  # 만약 파일이 없을 경우 "No output generated" 출력
+        echo "review=$review" >> $GITHUB_ENV  # 환경 변수에 저장
 
     - name: Post review as a comment
       if: github.event_name == 'pull_request'
