@@ -1,9 +1,11 @@
 import openai
 import os
 
+# OpenAI API 키 가져오기
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def get_code_changes():
+    """changed_files.txt 파일에서 변경된 파일 목록 읽기"""
     try:
         with open("changed_files.txt", "r") as f:
             diff_output = f.read()
@@ -13,6 +15,7 @@ def get_code_changes():
         return ""
 
 def review_code(diff):
+    """OpenAI API로 코드 리뷰 요청"""
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4",

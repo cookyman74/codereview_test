@@ -30,11 +30,14 @@ jobs:
       id: review_step
       run: |
         git fetch origin
-        if git rev-parse --verify origin/main > /dev/null 2>&1; then
+
+        if git merge-base --is-ancestor origin/main HEAD; then
           git diff --name-only origin/main...HEAD > changed_files.txt
         else
-          git ls-files > changed_files.txt
+          echo "No common ancestor, treating as first commit" > changed_files.txt
+          git ls-files >> changed_files.txt
         fi
+
         python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
         review=$(cat review_output.txt || echo "No output generated")
         echo "review=$review" >> $GITHUB_ENV
