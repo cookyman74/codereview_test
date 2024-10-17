@@ -38,19 +38,18 @@ jobs:
           git ls-files >> changed_files.txt
         fi
 
+        # Python 스크립트를 실행하여 리뷰를 생성한 후, 결과를 review_output.txt 파일에 저장
         python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
-        
-        # 리뷰 내용을 가져와서 "를 이스케이프 처리 후 환경 변수로 저장
-        review=$(cat review_output.txt | sed 's/"/\\"/g')
-        echo "review=$review" >> $GITHUB_ENV
-
+    
     - name: Post review as a comment
       if: github.event_name == 'pull_request'
       run: |
+        # 리뷰 결과를 review_output.txt에서 읽어서 GitHub PR에 코멘트로 남김
+        review=$(cat review_output.txt)
         response=$(curl -X POST \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Content-Type: application/json" \
-          -d "{\"body\": \"${{ env.review }}\"}" \
+          -d "{\"body\": \"$review\"}" \
           https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments)
         echo "Response: $response"
 
