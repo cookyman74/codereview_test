@@ -1,24 +1,36 @@
 import openai
 import os
 
-# OpenAI API 키 설정
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# git diff 명령어를 통해 변경된 파일 내용 가져오기
 def get_code_changes():
-    diff_output = os.popen('git diff HEAD~1').read()
-    return diff_output
+    try:
+        diff_output = os.popen('git diff --name-only FETCH_HEAD').read()
+        return diff_output
+    except Exception as e:
+        print(f"Error getting code changes: {e}")
+        return ""
 
-# OpenAI API를 사용해 코드 리뷰 생성
 def review_code(diff):
-    response = openai.Completion.create(
-        model="gpt-4",
-        prompt=f"Review the following code changes:\n{diff}",
-        max_tokens=500
-    )
-    return response.choices[0].text
+    try:
+        response = openai.ChatCompletion.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a code reviewer."},
+                {"role": "user", "content": f"Review the following code changes:\n{diff}"}
+            ]
+        )
+        return response.choices[0].message['content']
+    except Exception as e:
+        print(f"Error during OpenAI API call: {e}")
+        return "Error during review"
 
 if __name__ == "__main__":
     changes = get_code_changes()
-    review = review_code(changes)
-    print(f"Code Review:\n{review}")
+
+    if changes:
+        review = review_code(changes)
+        print(f"Code Review:\n{review}")
+    else:
+        print("No code changes detected.")
+
