@@ -19,7 +19,7 @@ def review_code(file_path, content):
     """OpenAI API로 개별 파일에 대한 코드 리뷰 요청"""
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4-0613",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 코드 리뷰어입니다."},
                 {"role": "user", "content": f"""
@@ -47,8 +47,7 @@ def review_code(file_path, content):
         )
         return response.choices[0].message['content'].strip()
     except Exception as e:
-        print(f"Error during OpenAI API call for {file_path}: {e}")
-        return f"Error during review of {file_path}"
+        return f"Error during review of {file_path}: {str(e)}"
 
 def main():
     try:
@@ -56,9 +55,6 @@ def main():
         current_branch = repo.active_branch.name
         changed_files = repo.git.diff("--name-only", "HEAD@{1}..HEAD").split("\n")
         changed_files = [f for f in changed_files if f]  # 빈 문자열 제거
-
-        print(f"Current branch: {current_branch}")
-        print(f"Changed files: {changed_files}")
 
         review_summary = "코드 리뷰가 완료되었습니다. 세부 사항은 아래를 참조하세요."
         review_details = []
