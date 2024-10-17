@@ -50,14 +50,18 @@ def review_code(file_path, content):
         return f"Error during review of {file_path}: {str(e)}"
 
 def get_changed_files():
-    """GitPython을 사용하여 직전 커밋과 현재 커밋의 변경된 파일 목록을 가져오는 함수"""
+    """GitPython을 사용하여 원격지 브랜치와 로컬 브랜치의 변경된 파일 목록을 가져오는 함수"""
     try:
         repo = Repo(".")
-        head_commit = repo.head.commit
-        previous_commit = head_commit.parents[0]  # 직전 커밋을 가져옴
-        diff_index = previous_commit.diff(head_commit)
+        branch_name = repo.active_branch.name  # 현재 브랜치명
 
-        changed_files = [item.a_path for item in diff_index]  # 변경된 파일 목록 반환
+        # 원격 저장소의 최신 커밋을 가져옴 (fetch)
+        repo.remotes.origin.fetch()
+
+        # 로컬 브랜치와 원격 브랜치 간의 차이를 비교하여 변경된 파일을 가져옴
+        diff_index = repo.git.diff('--name-only', f'origin/{branch_name}', 'HEAD')
+
+        changed_files = diff_index.splitlines()  # 변경된 파일 목록을 줄 단위로 나눔
         return changed_files
     except Exception as e:
         print(f"Error occurred while fetching changed files: {e}")
