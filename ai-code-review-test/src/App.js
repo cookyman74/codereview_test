@@ -8,6 +8,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <p>
+          코멘트 추가하여 확인 
           Hello, this is a test for AI Code Review!
         </p>
       </header>
