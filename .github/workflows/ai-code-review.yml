@@ -34,14 +34,14 @@ jobs:
           # 원격 저장소에서 브랜치 정보 업데이트
           git fetch origin
           
-          # 원격지의 해당 브랜치와 로컬 HEAD 간의 변경점 비교
-          git diff --name-only origin/$branch_name...HEAD > changed_files.txt
+          # 원격 브랜치와 로컬 브랜치의 차이점 확인
+          git diff --name-only origin/$branch_name..HEAD > changed_files.txt
           
           # 변경된 파일이 있을 때만 Python 스크립트 실행
           if [ -s changed_files.txt ]; then
             python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
           else
-            echo "No changes detected" > review_output.txt
+            echo "No changes detected in this push" > review_output.txt
           fi
 
       - name: Post review as a commit comment
