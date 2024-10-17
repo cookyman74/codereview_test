@@ -35,7 +35,7 @@ def review_code(file_path, diff_content):
         response = openai.ChatCompletion.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a code reviewer."},
+                {"role": "system", "content": "You are a code reviewer. Always provide your feedback in Korean, regardless of the language of the question."},
                 {"role": "user", "content": f"""
                 Please review the following changes in the file:\n
                 File: {file_path}\n
@@ -51,9 +51,8 @@ def review_code(file_path, diff_content):
                 7. Is the test coverage sufficient for these changes? If not, suggest additional test cases.
                 8. Are the comments and documentation adequate? Point out anything unclear or needing further explanation.
 
-                Provide your feedback only on the most relevant points. You may omit unnecessary criteria.
-
-                The response should be in Korean.
+                Only respond to relevant criteria and skip those that are unnecessary.
+                Your response should be exclusively in Korean.
                 """}
             ]
         )
