@@ -54,31 +54,19 @@ def get_changed_files():
     try:
         repo = Repo(".")
 
-        # 현재 브랜치명 가져오기
-        current_branch = repo.active_branch.name
-
-        # 원격 저장소의 해당 브랜치 정보 갱신
+        # 원격 저장소 정보 갱신
         origin = repo.remotes.origin
         origin.fetch()
 
-        # 디버깅을 위해 원격 브랜치와 로컬 브랜치 상태 출력
-        print(f"Comparing origin/{current_branch} with HEAD")
+        # 원격 저장소의 마지막 커밋과 로컬의 마지막 커밋을 비교하여 변경된 파일 목록 가져오기
+        diff_index = repo.git.diff('origin/main', 'HEAD', '--name-only')
 
-        # 원격 브랜치와 로컬 브랜치의 변경된 파일 비교
-        diff_index = repo.git.diff(f'origin/{current_branch}', 'HEAD', '--name-only')
-
-        # 변경된 파일 목록 확인
-        if not diff_index:
-            print(f"No differences found between origin/{current_branch} and HEAD")
-            return []
-
-        # 변경된 파일 목록을 줄바꿈 기준으로 분리하고 빈 문자열 제거
+        # 파일 목록을 줄바꿈 기준으로 분리하고 빈 문자열을 제거하여 반환
         changed_files = diff_index.splitlines()
         return changed_files
     except Exception as e:
         print(f"Error occurred while fetching changed files: {e}")
         return []
-
 
 
 def main():
