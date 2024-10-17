@@ -1,9 +1,7 @@
 name: AI Code Review
 
+# pull_request 이벤트에서만 워크플로우를 실행
 on:
-  push:
-    branches-ignore:
-      - main
   pull_request:
     branches-ignore:
       - main
@@ -30,8 +28,16 @@ jobs:
       id: review_step
       run: |
         python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
-        review=$(cat review_output.txt || echo "No output generated")  # 만약 파일이 없을 경우 "No output generated" 출력
+        review=$(cat review_output.txt || echo "No output generated")  # 파일이 없으면 에러 출력
         echo "review=$review" >> $GITHUB_ENV  # 환경 변수에 저장
+
+    - name: Check review_output.txt existence
+      run: |
+        if [ -f "review_output.txt" ]; then
+          echo "review_output.txt exists."
+        else
+          echo "review_output.txt does not exist."
+        fi
 
     - name: Post review as a comment
       if: github.event_name == 'pull_request'
@@ -42,9 +48,4 @@ jobs:
           -d "{\"body\": \"${{ env.review }}\"}" \
           https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments)
         echo "Response: $response"
-
-    - name: Check event info  # 이벤트 정보 확인용 단계 추가
-      run: |
-        echo "Event name: ${{ github.event_name }}"
-        echo "Pull request number: ${{ github.event.pull_request.number }}"
 
