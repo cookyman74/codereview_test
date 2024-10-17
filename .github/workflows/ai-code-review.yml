@@ -30,6 +30,8 @@ jobs:
             echo "Python script failed"
             exit 1
           fi
+      - name: Check review output
+        run: cat review_output.json
       - name: Post review as a commit comment
         uses: actions/github-script@v6
         with:
