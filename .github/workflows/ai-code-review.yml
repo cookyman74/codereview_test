@@ -41,7 +41,7 @@ jobs:
     - name: Post review as a commit comment
       run: |
         commit_sha=$(git rev-parse HEAD)
-        review=$(cat review_output.txt)
+        review=$(cat review_output.txt | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
         response=$(curl -X POST \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -H "Content-Type: application/json" \
