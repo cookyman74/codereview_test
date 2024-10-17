@@ -18,11 +18,23 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Install dependencies  # 추가된 단계
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt  # requirements.txt 파일에 명시된 패키지 설치
+        pip install -r requirements.txt
 
     - name: Run AI Code Review
-      run: python .github/scripts/review_code.py
+      id: review_step  # step의 ID를 설정하여 이후에 결과를 참조 가능
+      run: |
+        python .github/scripts/review_code.py > review_output.txt
+        review=$(cat review_output.txt)
+        echo "::set-output name=review::$review"
+
+    - name: Post review as a comment  # GitHub PR 코멘트 작성
+      run: |
+        curl -X POST \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d "{\"body\": \"${{ steps.review_step.outputs.review }}\"}" \
+          https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments
 
