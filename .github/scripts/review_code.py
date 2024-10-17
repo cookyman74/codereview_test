@@ -50,22 +50,27 @@ def review_code(file_path, content):
         return f"Error during review of {file_path}: {str(e)}"
 
 def get_changed_files():
-    """GitPython을 사용하여 원격지 브랜치와 로컬 브랜치의 변경된 파일 목록을 가져오는 함수"""
+    """원격 저장소와 로컬 저장소의 변경된 파일 목록을 가져오는 함수"""
     try:
         repo = Repo(".")
-        branch_name = repo.active_branch.name  # 현재 브랜치명
 
-        # 원격 저장소의 최신 커밋을 가져옴 (fetch)
-        repo.remotes.origin.fetch()
+        # 현재 브랜치명 가져오기
+        current_branch = repo.active_branch.name
 
-        # 로컬 브랜치와 원격 브랜치 간의 차이를 비교하여 변경된 파일을 가져옴
-        diff_index = repo.git.diff('--name-only', f'origin/{branch_name}', 'HEAD')
+        # 원격 저장소 정보 갱신
+        origin = repo.remotes.origin
+        origin.fetch()
 
-        changed_files = diff_index.splitlines()  # 변경된 파일 목록을 줄 단위로 나눔
+        # 원격 브랜치와 로컬 브랜치의 차이점 확인 (origin/current_branch)
+        diff_index = repo.git.diff(f'origin/{current_branch}', 'HEAD', '--name-only')
+
+        # 파일 목록을 줄바꿈 기준으로 분리하고 빈 문자열을 제거하여 반환
+        changed_files = diff_index.splitlines()
         return changed_files
     except Exception as e:
         print(f"Error occurred while fetching changed files: {e}")
         return []
+
 
 def main():
     try:
