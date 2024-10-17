@@ -19,7 +19,7 @@ def review_code(file_path, content):
     try:
         logging.info(f"Reviewing file: {file_path}")
         response = openai.ChatCompletion.create(
-            model="gpt-4-0613",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "당신은 코드 리뷰어입니다."},
                 {"role": "user", "content": f"다음 파일의 코드를 리뷰해주세요:\n파일: {file_path}\n코드:\n{content}\n..."}
