@@ -10,45 +10,47 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install Python
-      uses: actions/setup-python@v3
-      with:
-        python-version: '3.x'
+      - name: Install Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Run AI Code Review
-      id: review_step
-      env:
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # OpenAI API 키 전달
-      run: |
-        git fetch origin
+      - name: Run AI Code Review
+        id: review_step
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}  # OpenAI API 키 전달
+        run: |
+          # 현재 브랜치명 가져오기
+          branch_name=$(git rev-parse --abbrev-ref HEAD)
+          
+          # 원격 저장소에서 브랜치 정보 업데이트
+          git fetch origin
+          
+          # 원격지의 해당 브랜치와 로컬 HEAD 간의 변경점 비교
+          git diff --name-only origin/$branch_name...HEAD > changed_files.txt
+          
+          # 변경된 파일이 있을 때만 Python 스크립트 실행
+          if [ -s changed_files.txt ]; then
+            python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
+          else
+            echo "No changes detected" > review_output.txt
+          fi
 
-        if git merge-base --is-ancestor origin/main HEAD; then
-          git diff --name-only origin/main...HEAD > changed_files.txt
-        else
-          echo "No common ancestor, treating as first commit" > changed_files.txt
-          git ls-files >> changed_files.txt
-        fi
-
-        # Python 스크립트를 실행하여 리뷰를 생성한 후, 결과를 review_output.txt 파일에 저장
-        python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
-
-    - name: Post review as a commit comment
-      run: |
-        commit_sha=$(git rev-parse HEAD)
-        review=$(cat review_output.txt | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
-        response=$(curl -X POST \
-          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          -H "Content-Type: application/json" \
-          -d "{\"body\": \"$review\"}" \
-          https://api.github.com/repos/${{ github.repository }}/commits/${commit_sha}/comments)
-        echo "Response: $response"
-
-
+      - name: Post review as a commit comment
+        run: |
+          commit_sha=$(git rev-parse HEAD)
+          review=$(cat review_output.txt | sed ':a;N;$!ba;s/\n/\\n/g' | sed 's/"/\\"/g')
+          response=$(curl -X POST \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"body\": \"$review\"}" \
+            https://api.github.com/repos/${{ github.repository }}/commits/${commit_sha}/comments)
+          echo "Response: $response"
