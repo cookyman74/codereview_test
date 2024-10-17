@@ -39,7 +39,9 @@ jobs:
         fi
 
         python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
-        review=$(cat review_output.txt || echo "No output generated")
+        
+        # 리뷰 내용을 가져와서 "를 이스케이프 처리 후 환경 변수로 저장
+        review=$(cat review_output.txt | sed 's/"/\\"/g')
         echo "review=$review" >> $GITHUB_ENV
 
     - name: Post review as a comment
