@@ -1,24 +1,23 @@
-import openai
-import os
+name: AI Code Review
 
-# OpenAI API 키 설정
-openai.api_key = os.getenv("OPENAI_API_KEY")
+on:
+  push:
+    branches-ignore:
+      - main
 
-# git diff 명령어를 통해 변경된 파일 내용 가져오기
-def get_code_changes():
-    diff_output = os.popen('git diff HEAD~1').read()
-    return diff_output
+jobs:
+  code_review:
+    runs-on: ubuntu-latest
 
-# OpenAI API를 사용해 코드 리뷰 생성
-def review_code(diff):
-    response = openai.Completion.create(
-        model="gpt-4",
-        prompt=f"Review the following code changes:\n{diff}",
-        max_tokens=500
-    )
-    return response.choices[0].text
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3  # v2에서 v3로 업데이트
 
-if __name__ == "__main__":
-    changes = get_code_changes()
-    review = review_code(changes)
-    print(f"Code Review:\n{review}")
+    - name: Install Python
+      uses: actions/setup-python@v3  # v2에서 v3로 업데이트
+      with:
+        python-version: '3.x'
+
+    - name: Run AI Code Review
+      run: python .github/scripts/review_code.py
+
