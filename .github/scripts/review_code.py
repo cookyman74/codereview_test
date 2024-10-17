@@ -18,7 +18,7 @@ def review_code(diff):
     """OpenAI API로 코드 리뷰 요청"""
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": "You are a code reviewer."},
                 {"role": "user", "content": f"Review the following code changes:\n{diff}"}
