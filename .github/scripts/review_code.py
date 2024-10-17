@@ -50,7 +50,7 @@ def review_code(file_path, content):
         return f"Error during review of {file_path}: {str(e)}"
 
 def get_changed_files():
-    """원격 저장소와 로컬 저장소의 변경된 파일 목록을 가져오는 함수"""
+    """원격 저장소와 로컬 저장소의 공통 조상을 기준으로 변경된 파일 목록을 가져오는 함수"""
     try:
         repo = Repo(".")
 
@@ -58,15 +58,22 @@ def get_changed_files():
         origin = repo.remotes.origin
         origin.fetch()
 
-        # 원격 저장소의 마지막 커밋과 로컬의 마지막 커밋을 비교하여 변경된 파일 목록 가져오기
-        diff_index = repo.git.diff('origin/main', 'HEAD', '--name-only')
+        # 현재 브랜치의 마지막 공통 조상(commit merge-base)을 기준으로 diff 수행
+        merge_base = repo.git.merge_base('origin/main', 'HEAD')
+        diff_index = repo.git.diff(merge_base, 'HEAD', '--name-only')
 
-        # 파일 목록을 줄바꿈 기준으로 분리하고 빈 문자열을 제거하여 반환
+        # 변경된 파일 목록 출력 및 반환
+        if not diff_index:
+            print("No changes found between the last common ancestor and the current commit.")
+            return []
+
+        # 파일 목록을 줄바꿈 기준으로 분리하고 빈 문자열 제거
         changed_files = diff_index.splitlines()
         return changed_files
     except Exception as e:
         print(f"Error occurred while fetching changed files: {e}")
         return []
+
 
 
 def main():
