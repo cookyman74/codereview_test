@@ -30,12 +30,15 @@ jobs:
       id: review_step
       run: |
         git fetch origin
-        git diff --name-only origin/main...HEAD > changed_files.txt
+        if git rev-parse --verify origin/main > /dev/null 2>&1; then
+          git diff --name-only origin/main...HEAD > changed_files.txt
+        else
+          git ls-files > changed_files.txt
+        fi
         python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
         review=$(cat review_output.txt || echo "No output generated")
         echo "review=$review" >> $GITHUB_ENV
 
-    # Only post comment on pull request events
     - name: Post review as a comment
       if: github.event_name == 'pull_request'
       run: |

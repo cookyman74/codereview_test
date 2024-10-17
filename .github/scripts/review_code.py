@@ -5,10 +5,11 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def get_code_changes():
     try:
-        diff_output = os.popen('git diff --name-only FETCH_HEAD').read()
+        with open("changed_files.txt", "r") as f:
+            diff_output = f.read()
         return diff_output
     except Exception as e:
-        print(f"Error getting code changes: {e}")
+        print(f"Error reading changed files: {e}")
         return ""
 
 def review_code(diff):
