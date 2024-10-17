@@ -34,7 +34,7 @@ jobs:
         echo "review=$review" >> $GITHUB_ENV
 
     - name: Post review as a comment
-      if: github.event_name == 'pull_request'  # PR 이벤트일 때만 실행
+      if: github.event_name == 'pull_request'
       run: |
         response=$(curl -X POST \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
@@ -42,4 +42,9 @@ jobs:
           -d "{\"body\": \"${{ env.review }}\"}" \
           https://api.github.com/repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments)
         echo "Response: $response"
+
+    - name: Check event info  # 이벤트 정보 확인용 단계 추가
+      run: |
+        echo "Event name: ${{ github.event_name }}"
+        echo "Pull request number: ${{ github.event.pull_request.number }}"
 
