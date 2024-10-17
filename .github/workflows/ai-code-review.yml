@@ -42,6 +42,7 @@ jobs:
           python .github/scripts/review_code.py > review_output.json
           if [ $? -ne 0 ]; then
             echo "Python script failed"
+            cat review_output.json
             exit 1
           fi
 
