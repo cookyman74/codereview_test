@@ -11,8 +11,14 @@ def get_diff_content(file_path):
     try:
         repo = Repo(".")
 
-        # 변경된 파일의 diff를 가져옴
-        diff_content = repo.git.diff('HEAD~1', 'HEAD', file_path)
+        # 원격 저장소 정보 갱신
+        origin = repo.remotes.origin
+        origin.fetch()
+
+        # 원격 브랜치와 로컬 HEAD 간의 diff를 가져옴
+        # 여기서 HEAD~1 대신, origin/main과 비교하여 현재 커밋의 변경사항을 가져옴
+        diff_content = repo.git.diff('origin/main', 'HEAD', file_path)
+
         if diff_content:
             return diff_content
         else:
@@ -21,6 +27,7 @@ def get_diff_content(file_path):
     except Exception as e:
         print(f"Error getting diff for {file_path}: {e}")
         return None
+
 
 def review_code(file_path, diff_content):
     """OpenAI API로 변경된 부분에 대한 코드 리뷰 요청"""
