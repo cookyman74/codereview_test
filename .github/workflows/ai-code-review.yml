@@ -29,12 +29,14 @@ jobs:
     - name: Run AI Code Review
       id: review_step
       run: |
-        python .github/scripts/review_code.py > review_output.txt
-        review=$(cat review_output.txt)
+        git fetch origin
+        git diff origin/main --name-only > changed_files.txt
+        python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
+        review=$(cat review_output.txt || echo "No output generated")
         echo "review=$review" >> $GITHUB_ENV
 
     - name: Post review as a comment
-      if: github.event_name == 'pull_request'  # PR 이벤트일 때만 실행
+      if: github.event_name == 'push' || github.event_name == 'pull_request'
       run: |
         response=$(curl -X POST \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
