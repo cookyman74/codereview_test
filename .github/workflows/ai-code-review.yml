@@ -1,6 +1,13 @@
 name: AI Code Review
 
-# pull_request 이벤트에서만 워크플로우를 실행
+on:
+  push:
+    branches-ignore:
+      - main
+  pull_request:
+    branches-ignore:
+      - main
+
 jobs:
   code_review:
     runs-on: ubuntu-latest
@@ -22,20 +29,12 @@ jobs:
     - name: Run AI Code Review
       id: review_step
       run: |
-        python .github/scripts/review_code.py > review_output.txt || echo "Python script failed"
-        review=$(cat review_output.txt || echo "No output generated")  # 파일이 없으면 에러 출력
-        echo "review=$review" >> $GITHUB_ENV  # 환경 변수에 저장
-
-    - name: Check review_output.txt existence
-      run: |
-        if [ -f "review_output.txt" ]; then
-          echo "review_output.txt exists."
-        else
-          echo "review_output.txt does not exist."
-        fi
+        python .github/scripts/review_code.py > review_output.txt
+        review=$(cat review_output.txt)
+        echo "review=$review" >> $GITHUB_ENV
 
     - name: Post review as a comment
-      if: github.event_name == 'pull_request'
+      if: github.event_name == 'pull_request'  # PR 이벤트일 때만 실행
       run: |
         response=$(curl -X POST \
           -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
