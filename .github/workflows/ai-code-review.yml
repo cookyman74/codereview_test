@@ -3,6 +3,7 @@ on:
   push:
     branches-ignore:
       - main
+
 jobs:
   code_review:
     runs-on: ubuntu-latest
@@ -10,16 +11,29 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3.5.3
         with:
-          fetch-depth: 0
+          fetch-depth: 0  # 전체 히스토리를 가져옵니다
+
+      - name: Get branch name
+        id: branch-name
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
+
+      - name: Fetch and checkout branch
+        run: |
+          git fetch origin ${{ steps.branch-name.outputs.branch }}
+          git checkout ${{ steps.branch-name.outputs.branch }}
+          git pull origin ${{ steps.branch-name.outputs.branch }}
+
       - name: Install Python
         uses: actions/setup-python@v4.6.1
         with:
           python-version: '3.x'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install GitPython
+
       - name: Run AI Code Review
         id: review_step
         env:
@@ -30,8 +44,7 @@ jobs:
             echo "Python script failed"
             exit 1
           fi
-      - name: Check review output
-        run: cat review_output.json
+
       - name: Post review as a commit comment
         uses: actions/github-script@v6
         with:
