@@ -53,7 +53,9 @@ def review_code(file_path, content):
 def main():
     try:
         repo = Repo(".")
-        changed_files = repo.git.diff("--name-only", "FETCH_HEAD..HEAD").split("\n")
+        current_branch = repo.active_branch.name
+        changed_files = repo.git.diff("--name-only", "ORIG_HEAD..HEAD").split("\n")
+        changed_files = [f for f in changed_files if f]  # 빈 문자열 제거
 
         review_summary = "코드 리뷰가 완료되었습니다. 세부 사항은 아래를 참조하세요."
         review_details = []
